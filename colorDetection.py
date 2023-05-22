@@ -8,6 +8,9 @@ cap = cv2.VideoCapture('./pen.mp4')
 model = YOLO("yolov8m.pt")
 yolo_seg = YOLOSegmentation("yolov8m-seg.pt")
 
+def get_average_color(a):
+    return tuple(np.array(a).mean(axis=0).mean(axis=0).round().astype(int))
+
 # identifies most common color
 def unique_count_app(a):
     colors, count = np.unique(a.reshape(-1,a.shape[-1]), axis=0, return_counts=True)
@@ -34,7 +37,7 @@ while True:
 
             cv2.polylines(frame, [seg], True, (0, 0, 225), 2)
             cv2.rectangle(frame, (seg[0][0], seg[0][1]), (seg[len(seg)-1][0], bottomVal), (225, 0, 0), 2)
-            cv2.putText(frame, str(unique_count_app(a)), (x, y-5), cv2.FONT_HERSHEY_PLAIN, 2, (int(unique_count_app(a)[0]), int(unique_count_app(a)[1]), int(unique_count_app(a)[2])), 4)
+            cv2.putText(frame, str(get_average_color(a)), (x, y-5), cv2.FONT_HERSHEY_PLAIN, 2, (int(get_average_color(a)[0]), int(get_average_color(a)[1]), int(get_average_color(a)[2])), 4)
 
     cv2.imshow("Img", frame)
 

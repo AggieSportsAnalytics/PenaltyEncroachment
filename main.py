@@ -3,10 +3,19 @@ import numpy as np
 from ultralytics import YOLO
 from yolo_segmentation import YOLOSegmentation
 
+from roboflow import Roboflow
+rf = Roboflow(api_key="0orvzcC4ruCS4pZCHTZR")
+project = rf.workspace().project("football-team-separation")
+model = project.version(15).model
+
 cap = cv2.VideoCapture('./pen.mp4')
 
 model = YOLO("yolov8m.pt")
 yolo_seg = YOLOSegmentation("yolov8m-seg.pt")
+
+# identifies most average color
+def get_average_color(a):
+    return tuple(np.array(a).mean(axis=0).mean(axis=0).round().astype(int))
 
 # identifies most common color
 def unique_count_app(a):
