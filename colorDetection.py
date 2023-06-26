@@ -3,7 +3,7 @@ import numpy as np
 from ultralytics import YOLO
 from yolo_segmentation import YOLOSegmentation
 
-cap = cv2.VideoCapture('./pen.mp4')
+cap = cv2.VideoCapture('./data/pen.mp4')
 
 model = YOLO("yolov8m.pt")
 yolo_seg = YOLOSegmentation("yolov8m-seg.pt")

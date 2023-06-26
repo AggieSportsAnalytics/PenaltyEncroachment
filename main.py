@@ -8,7 +8,7 @@ rf = Roboflow(api_key="0orvzcC4ruCS4pZCHTZR")
 project = rf.workspace().project("football-team-separation")
 model = project.version(15).model
 
-cap = cv2.VideoCapture('./pen.mp4')
+cap = cv2.VideoCapture('./data/pen.mp4')
 
 model = YOLO("yolov8m.pt")
 yolo_seg = YOLOSegmentation("yolov8m-seg.pt")
