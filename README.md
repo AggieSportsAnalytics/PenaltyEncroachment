@@ -37,14 +37,14 @@ results = model(frame, device="mps")
 Then we need to extract the information we want from the model's results, which will be the bounding boxes and the classes
 
 ```py
-bboxes = np.array(result.boxes.xyxy.cpu(), dtype="int")
+bounding_boxes = np.array(result.boxes.xyxy.cpu(), dtype="int")
 classes = np.array(result.boxes.cls.cpu(), dtype="int")
 ```
 
 Now, we need to label the frame with the information we gathered
 
 ```py
-for cls, bbox in zip(classes, bboxes):
+for cls, bbox in zip(classes, bounding_boxes):
         # label players
         if cls == 0:
             (x, y, x2, y2) = bbox
@@ -62,7 +62,43 @@ The program also detects players more finely and additionally, and classifies th
 ![pen3](https://github.com/AggieSportsAnalytics/PenaltyEncroachment/assets/53201392/91d2b6e8-7f2f-4336-a6a3-46b6c7ec145b)
 _Notice the finer bounding boxes. The player's jerseys RGB value is displayed above them, and colored in that same value_
 ### 💻 Code
-We can now use YOLO Segmentation to acquire finer bounding boxes for the players and then, using the more precise segmentation, an algorithm to identify which team each player belongs to
+We can now use YOLO Segmentation to acquire finer bounding boxes for the players and then, using the more precise segmentation, an algorithm to identify which team each player belongs to.
+First, let's implement segmentation:
+
+```py
+# import yolo segmentation model and use pre trained weights file
+from yolo_segmentation import YOLOSegmentation
+yolo_seg = YOLOSegmentation("yolov8m-seg.pt")
+
+# bounding_boxes - the bounding boxes
+# classes - the object classes
+# segementation - the values to segment within the boxes
+# scores - the confidence score of the detection
+bounding_boxes, classes, segmentations, scores = yolo_seg.detect(frame)
+```
+
+Now let's create a function to pull the most dominant color from within a box
+
+```py
+def get_average_color(a):
+    return tuple(np.array(a).mean(axis=0).mean(axis=0).round().astype(int))
+```
+
+Finally, lets put our loop together to annotate the segmentations and common color!
+```py
+for bbox, class_id, seg, score in zip(bboxes, classes, segmentations, scores):
+        if class_id == 0:
+            (x, y, x2, y2) = bbox
+            
+            minY = np.max(seg[:, 1])
+            bottomVal = int(2*(minY - seg[0][1])/3 + seg[0][1])
+            
+            a = frame2[seg[0][1]:bottomVal, seg[0][0]:seg[len(seg)-1][0]]
+
+            cv2.polylines(frame, [seg], True, (0, 0, 225), 2)
+            cv2.rectangle(frame, (seg[0][0], seg[0][1]), (seg[len(seg)-1][0], bottomVal), (225, 0, 0), 2)
+            cv2.putText(frame, str(get_average_color(a)), (x, y-5), cv2.FONT_HERSHEY_PLAIN, 2, (int(get_average_color(a)[0]), int(get_average_color(a)[1]), int(get_average_color(a)[2])), 4)
+```
 
 
 
